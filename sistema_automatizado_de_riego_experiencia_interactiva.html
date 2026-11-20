@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Automatizado de Riego — Experiencia Interactiva</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tipografías Google Fonts: Plus Jakarta Sans, Instrument Serif y JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            paper: '#FAF8F5',
+            cream: '#F2EFE9',
+            botanical: '#2D5A3D',
+            sage: '#8CA992',
+            graphite: '#1F2421',
+            earth: '#9C6644'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: #FAF8F5;
+      color: #1F2421;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Animaciones continuas sutiles de naturaleza y electrónica */
+    @keyframes swayGentle {
+      0%, 100% { transform: rotate(-1.6deg); }
+      50% { transform: rotate(1.9deg); }
+    }
+    @keyframes signalFlow {
+      from { stroke-dashoffset: 48; }
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes wavePulse {
+      0%, 100% { opacity: 0.25; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.06); }
+    }
+    @keyframes dropFall {
+      0% { transform: translateY(-6px); opacity: 0; }
+      30% { opacity: 1; }
+      100% { transform: translateY(18px); opacity: 0; }
+    }
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes float25D {
+      0%, 100% { margin-top: 0px; }
+      50% { margin-top: -6px; }
+    }
+
+    .anim-sway {
+      transform-box: fill-box;
+      transform-origin: bottom center;
+      animation: swayGentle 5.5s ease-in-out infinite;
+    }
+    .anim-signal {
+      animation: signalFlow 1.5s linear infinite;
+    }
+    .anim-wave {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: wavePulse 2.1s ease-in-out infinite;
+    }
+    .anim-wave-delayed {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: wavePulse 2.1s ease-in-out 0.65s infinite;
+    }
+    .anim-drop {
+      animation: dropFall 1.8s ease-in infinite;
+    }
+    .anim-spin {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: spinSlow 2.6s linear infinite;
+    }
+    .anim-pulse-dot {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: wavePulse 1.6s ease-in-out infinite;
+    }
+    .anim-float {
+      animation: float25D 4s ease-in-out infinite;
+    }
+
+    /* Secciones sticky de scrollytelling en modo normal */
+    .scrolly-tall-190 { min-height: 190vh; }
+    .scrolly-tall-200 { min-height: 200vh; }
+    .scrolly-tall-180 { min-height: 180vh; }
+    .scrolly-tall-250 { min-height: 250vh; }
+
+    .scrolly-sticky {
+      position: sticky;
+      top: 0;
+      min-height: 100vh;
+    }
+
+    /* Accesibilidad: modo Reducir animaciones */
+    body.reduced-motion {
+      scroll-behavior: auto;
+    }
+    body.reduced-motion .anim-sway,
+    body.reduced-motion .anim-signal,
+    body.reduced-motion .anim-wave,
+    body.reduced-motion .anim-wave-delayed,
+    body.reduced-motion .anim-drop,
+    body.reduced-motion .anim-spin,
+    body.reduced-motion .anim-pulse-dot,
+    body.reduced-motion .anim-float,
+    body.reduced-motion .animate-bounce,
+    body.reduced-motion .animate-pulse {
+      animation: none !important;
+    }
+    body.reduced-motion .scrolly-tall-190,
+    body.reduced-motion .scrolly-tall-200,
+    body.reduced-motion .scrolly-tall-180,
+    body.reduced-motion .scrolly-tall-250 {
+      min-height: auto;
+      padding-top: 4.5rem;
+      padding-bottom: 4.5rem;
+    }
+    body.reduced-motion .scrolly-sticky {
+      position: static;
+      min-height: auto;
+    }
+
+    /* Estilizado del deslizador de rango */
+    input[type="range"] {
+      accent-color: #2D5A3D;
+    }
+  </style>
+</head>
+<body class="font-sans selection:bg-[#2D5A3D] selection:text-[#FAF8F5]">
+
+  <!-- =========================================================================
+       BARRA SUPERIOR FIJA + PROGRESO DE SCROLL + CONTROLES ACCESIBLES
+       ========================================================================= -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-[#FAF8F5]/85 backdrop-blur-md border-b border-[#1F2421]/10">
+    <!-- Indicador fino de progreso -->
+    <div class="h-[3px] w-full bg-[#1F2421]/10">
+      <div id="globalProgressBar" class="h-full bg-[#2D5A3D] w-0 transition-[width] duration-75"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <!-- Marca / Título editable -->
+      <button type="button" id="brandTopBtn" class="flex items-center gap-2.5 text-left group cursor-pointer">
+        <span class="w-8 h-8 rounded-xl bg-[#2D5A3D] text-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
+            <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
+          </svg>
+        </span>
+        <div class="hidden sm:block">
+          <p data-meta="projectName" class="text-xs font-semibold tracking-tight text-[#1F2421] leading-none">
+            [Nombre definitivo del proyecto]
+          </p>
+          <p class="text-[10px] text-[#1F2421]/55 mt-0.5">Proyecto Académico de Electrónica</p>
+        </div>
+      </button>
+
+      <!-- Controles globales -->
+      <div class="flex items-center gap-2">
+        <!-- Botón Modal Datos Académicos -->
+        <button
+          type="button"
+          id="openMetaModalBtn"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-[#1F2421]/15 hover:border-[#2D5A3D] hover:text-[#2D5A3D] transition-colors cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+          </svg>
+          <span class="hidden md:inline">Datos académicos</span>
+        </button>
+
+        <!-- Botón Reducir animaciones -->
+        <button
+          type="button"
+          id="toggleMotionBtn"
+          aria-pressed="false"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-[#1F2421]/15 text-[#1F2421]/80 hover:border-[#2D5A3D] transition-colors cursor-pointer"
+        >
+          <svg id="motionIconOn" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          <svg id="motionIconOff" class="w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>
+          </svg>
+          <span id="motionBtnLabel" class="hidden sm:inline">Reducir animaciones</span>
+        </button>
+
+        <!-- Botón Menú Móvil -->
+        <button
+          type="button"
+          id="mobileMenuBtn"
+          aria-label="Abrir navegación por capítulos"
+          class="lg:hidden p-2 rounded-full border border-[#1F2421]/15 text-[#1F2421] cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navegación móvil por capítulos -->
+    <nav id="mobileChapterNav" class="hidden lg:hidden bg-[#FAF8F5] border-b border-[#1F2421]/10 px-4 py-3 grid grid-cols-2 gap-2"></nav>
+  </header>
+
+  <!-- =========================================================================
+       NAVEGACIÓN LATERAL DISCRETA POR CAPÍTULOS (ESCRITORIO)
+       ========================================================================= -->
+  <aside
+    id="desktopChapterNav"
+    aria-label="Navegación por capítulos"
+    class="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-40 flex-col gap-2"
+  ></aside>
+
+  <!-- =========================================================================
+       ESCENA 01 — APERTURA (ZOOM PROGRESIVO HACIA LA TIERRA)
+       ========================================================================= -->
+  <section id="escena-01" class="relative scrolly-tall-190">
+    <div class="scrolly-sticky flex items-center pt-20 pb-10 px-4 sm:px-8">
+      <div class="max-w-6xl mx-auto w-full grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        <!-- Texto principal -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2D5A3D]/10 text-[#2D5A3D] text-xs font-semibold tracking-widest uppercase">
+            <span>Escena 01</span><span>·</span><span>Apertura</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-[#1F2421] leading-[1.06]">
+            El agua, en el <span class="font-serif italic font-normal text-[#2D5A3D]">momento preciso.</span>
+          </h1>
+
+          <p class="text-lg sm:text-xl text-[#1F2421]/72 leading-relaxed max-w-xl">
+            Sistema automatizado de riego basado en el monitoreo de la humedad del suelo.
+          </p>
+
+          <!-- Palabras clave -->
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <span class="text-xs sm:text-sm font-semibold tracking-[0.22em] text-[#2D5A3D]">MEDIR</span>
+            <span class="text-[#8CA992]">·</span>
+            <span class="text-xs sm:text-sm font-semibold tracking-[0.22em] text-[#2D5A3D]">PROCESAR</span>
+            <span class="text-[#8CA992]">·</span>
+            <span class="text-xs sm:text-sm font-semibold tracking-[0.22em] text-[#2D5A3D]">ACTUAR</span>
+          </div>
+
+          <!-- Metadatos editables -->
+          <div class="pt-4 border-t border-[#1F2421]/10 grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span class="text-[#1F2421]/45 block uppercase tracking-wider text-[10px]">Proyecto</span>
+              <span data-meta="projectName" class="font-medium text-[#1F2421]/85">[Nombre definitivo del proyecto]</span>
+            </div>
+            <div>
+              <span class="text-[#1F2421]/45 block uppercase tracking-wider text-[10px]">Autores</span>
+              <span data-meta="authors" class="font-medium text-[#1F2421]/85">[Autores del proyecto]</span>
+            </div>
+            <div>
+              <span class="text-[#1F2421]/45 block uppercase tracking-wider text-[10px]">Asignatura</span>
+              <span data-meta="course" class="font-medium text-[#1F2421]/85">[Asignatura]</span>
+            </div>
+            <div>
+              <span class="text-[#1F2421]/45 block uppercase tracking-wider text-[10px]">Institución</span>
+              <span data-meta="institution" class="font-medium text-[#1F2421]/85">[Institución educativa]</span>
+            </div>
+          </div>
+
+          <p id="scrollHintText" class="text-xs text-[#1F2421]/50 flex items-center gap-2 pt-2">
+            <svg class="w-4 h-4 animate-bounce text-[#2D5A3D]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+            Desplázate para acercarte a la tierra y descubrir el monitoreo electrónico
+          </p>
+        </div>
+
+        <!-- Visual 2.5D con cámara simulada hacia la tierra -->
+        <div class="lg:col-span-6">
+          <div class="relative w-full max-w-[540px] aspect-square mx-auto rounded-[2rem] overflow-hidden bg-gradient-to-b from-[#FAF8F5] via-[#F2EFE9] to-[#E6E1D8] border border-[#1F2421]/10 shadow-[0_30px_80px_-25px_rgba(31,36,33,0.14)]">
+            <!-- Grilla técnica sutil -->
+            <div
+              class="absolute inset-0 opacity-30 pointer-events-none"
+              style="background-image: radial-gradient(circle at 1px 1px, rgba(45,90,61,0.22) 1px, transparent 0); background-size: 24px 24px;"
+            ></div>
+
+            <div id="heroCameraLayer" class="w-full h-full flex items-center justify-center will-change-transform">
+              <svg viewBox="0 0 400 400" class="w-full h-full" aria-label="Ilustración técnica de planta y sensor en la tierra">
+                <defs>
+                  <linearGradient id="potGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#E9E4DB" />
+                    <stop offset="100%" stop-color="#CFC8BC" />
+                  </linearGradient>
+                  <linearGradient id="soilGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#4A3B32" />
+                    <stop offset="100%" stop-color="#2C221C" />
+                  </linearGradient>
+                  <linearGradient id="leafMain" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#3B7250" />
+                    <stop offset="100%" stop-color="#2D5A3D" />
+                  </linearGradient>
+                  <linearGradient id="leafLight" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#8CA992" />
+                    <stop offset="100%" stop-color="#497D5B" />
+                  </linearGradient>
+                </defs>
+
+                <!-- Halo ambiental -->
+                <circle cx="200" cy="180" r="135" fill="#8CA992" opacity="0.12" />
+
+                <!-- Planta botánica con balanceo suave -->
+                <g class="anim-sway">
+                  <path d="M200 245 C198 195, 195 155, 200 105" stroke="#2D5A3D" stroke-width="4.5" fill="none" stroke-linecap="round" />
+                  <path d="M200 215 C180 185, 150 165, 130 148" stroke="#2D5A3D" stroke-width="3.5" fill="none" stroke-linecap="round" />
+                  <path d="M200 198 C222 172, 250 154, 272 140" stroke="#2D5A3D" stroke-width="3.5" fill="none" stroke-linecap="round" />
+                  <path d="M200 112 C175 82, 185 45, 204 42 C222 48, 226 84, 200 112 Z" fill="url(#leafMain)" />
+                  <path d="M132 150 C96 146, 86 116, 102 104 C122 100, 146 125, 132 150 Z" fill="url(#leafLight)" />
+                  <path d="M270 142 C304 136, 314 106, 296 95 C276 92, 254 118, 270 142 Z" fill="url(#leafMain)" />
+                  <path d="M196 168 C162 152, 152 122, 168 110 C186 108, 205 138, 196 168 Z" fill="url(#leafLight)" opacity="0.92" />
+                  <path d="M204 162 C238 148, 248 118, 232 106 C214 104, 195 134, 204 162 Z" fill="url(#leafMain)" opacity="0.92" />
+                </g>
+
+                <!-- Maceta -->
+                <path d="M118 242 L282 242 L264 358 C262 368, 252 374, 240 374 L160 374 C148 374, 138 368, 136 358 Z" fill="url(#potGrad)" stroke="#1F2421" stroke-opacity="0.12" stroke-width="1.5" />
+                <rect x="110" y="232" width="180" height="18" rx="9" fill="#F2EFE9" stroke="#1F2421" stroke-opacity="0.14" stroke-width="1.5" />
+
+                <!-- Corte transversal del suelo -->
+                <g id="heroSoilGroup" style="opacity: 0.45;">
+                  <path d="M134 252 L266 252 L254 345 C252 353, 244 358, 234 358 L166 358 C156 358, 148 353, 146 345 Z" fill="url(#soilGrad)" />
+                  <circle cx="165" cy="285" r="2.2" fill="#8CA992" opacity="0.5" />
+                  <circle cx="185" cy="312" r="1.8" fill="#8CA992" opacity="0.4" />
+                  <circle cx="218" cy="295" r="2.5" fill="#8CA992" opacity="0.5" />
+                  <circle cx="195" cy="335" r="2" fill="#FAF8F5" opacity="0.25" />
+
+                  <!-- Sensor resistivo revelado al hacer scroll -->
+                  <g id="heroSensorGroup" style="opacity: 0;">
+                    <rect x="220" y="236" width="26" height="22" rx="3" fill="#2D5A3D" />
+                    <circle cx="228" cy="245" r="2" fill="#FAF8F5" />
+                    <circle cx="238" cy="245" r="2" fill="#FAF8F5" />
+                    <rect x="224" y="258" width="5" height="64" rx="2.5" fill="#D5D9D6" />
+                    <rect x="237" y="258" width="5" height="64" rx="2.5" fill="#D5D9D6" />
+                    <path d="M214 285 Q204 295 214 305" stroke="#8CA992" stroke-width="1.8" fill="none" stroke-linecap="round" class="anim-wave" />
+                    <path d="M206 278 Q192 295 206 312" stroke="#8CA992" stroke-width="1.4" fill="none" stroke-opacity="0.6" stroke-linecap="round" class="anim-wave-delayed" />
+                    <path d="M246 244 L298 244 L318 264" stroke="#2D5A3D" stroke-width="2.2" stroke-dasharray="6 6" fill="none" class="anim-signal" />
+                    <circle cx="322" cy="268" r="5" fill="#2D5A3D" class="anim-pulse-dot" />
+                  </g>
+                </g>
+
+                <!-- Gota de agua cayendo -->
+                <g class="anim-drop" style="opacity: 0.75;">
+                  <path d="M168 188 C168 188, 163 196, 168 199 C173 196, 168 188, 168 188 Z" fill="#2D5A3D" />
+                </g>
+              </svg>
+            </div>
+
+            <!-- Etiqueta flotante -->
+            <div
+              id="heroSensorTag"
+              class="absolute bottom-4 left-4 right-4 flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#FAF8F5]/92 backdrop-blur-md border border-[#1F2421]/10 text-xs transition-opacity duration-300 opacity-0"
+            >
+              <span class="font-medium text-[#1F2421] flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#2D5A3D] animate-pulse"></span>
+                Sensor resistivo en el suelo (ilustración técnica)
+              </span>
+              <span class="text-[#2D5A3D] font-mono text-[11px]">2 electrodos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ESCENA 02 — EL PROBLEMA (TRANSICIÓN HÚMEDO A SECO)
+       ========================================================================= -->
+  <section id="escena-02" class="relative bg-[#F2EFE9] scrolly-tall-200">
+    <div class="scrolly-sticky flex items-center py-20 px-4 sm:px-8">
+      <div class="max-w-6xl mx-auto w-full grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        <!-- Ilustración SVG reactiva al scroll -->
+        <div class="lg:col-span-5 order-2 lg:order-1">
+          <div class="relative w-full max-w-[460px] mx-auto rounded-[2rem] p-6 bg-[#FAF8F5] border border-[#1F2421]/10 shadow-[0_24px_60px_-20px_rgba(31,36,33,0.1)]">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-medium uppercase tracking-widest text-[#1F2421]/55">Estado conceptual del suelo</span>
+              <span id="problemStatusPill" class="text-xs font-semibold px-3 py-1 rounded-full bg-[#2D5A3D]/12 text-[#2D5A3D] transition-colors">
+                Condición húmeda
+              </span>
+            </div>
+
+            <svg viewBox="0 0 360 300" class="w-full h-auto" aria-label="Transición conceptual de humedad en la planta y el suelo">
+              <path id="probStem" d="M180 210 Q180 150, 180 95" stroke="#2D5A3D" stroke-width="4.5" fill="none" stroke-linecap="round" />
+              <path id="probLeafL" d="M178 165 C140 150, 110 128, 102 145 C118 168, 152 176, 178 165 Z" fill="#8CA992" />
+              <path id="probLeafR" d="M184 150 C224 132, 256 115, 264 134 C246 158, 212 164, 184 150 Z" fill="#2D5A3D" />
+              <path id="probLeafTop" d="M180 98 C160 68, 196 52, 205 80 C198 96, 186 102, 180 98 Z" fill="#2D5A3D" />
+              <rect id="probSoilRect" x="65" y="210" width="230" height="62" rx="16" fill="#3C2F26" />
+              <g id="probCracks" style="opacity: 0;">
+                <path d="M110 212 L118 232 L112 248" stroke="#FAF8F5" stroke-opacity="0.45" stroke-width="1.8" fill="none" />
+                <path d="M225 212 L218 228 L228 244" stroke="#FAF8F5" stroke-opacity="0.45" stroke-width="1.8" fill="none" />
+                <path d="M168 212 L162 226" stroke="#FAF8F5" stroke-opacity="0.35" stroke-width="1.5" fill="none" />
+              </g>
+              <g id="probDrops" style="opacity: 1;">
+                <circle cx="130" cy="238" r="4" fill="#8CA992" />
+                <circle cx="180" cy="246" r="5" fill="#8CA992" />
+                <circle cx="230" cy="236" r="4" fill="#8CA992" />
+              </g>
+            </svg>
+
+            <div class="mt-3">
+              <div class="flex justify-between text-[11px] text-[#1F2421]/60 mb-1.5">
+                <span>Húmedo</span>
+                <span>Seco</span>
+              </div>
+              <div class="h-2 rounded-full bg-[#F2EFE9] overflow-hidden">
+                <div id="probDryBar" class="h-full rounded-full bg-[#2D5A3D] transition-all duration-100" style="width: 10%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Narrativa con revelado progresivo -->
+        <div class="lg:col-span-7 order-1 lg:order-2 space-y-6">
+          <span class="text-xs font-semibold tracking-widest uppercase text-[#2D5A3D]">Escena 02 · El Problema</span>
+          <h2 class="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1F2421] leading-tight">
+            ¿Cómo saber cuándo una planta necesita agua?
+          </h2>
+          <p class="text-base sm:text-lg text-[#1F2421]/75 leading-relaxed">
+            El cuidado de las plantas puede depender de que una persona recuerde y realice el riego oportunamente. La intención original del proyecto es reducir la dependencia de una persona encargada de realizar el riego.
+          </p>
+
+          <div class="space-y-3 pt-2">
+            <div class="problem-card p-4 sm:p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/10 transition-all duration-500" data-threshold="0.05">
+              <div class="flex items-start gap-4">
+                <span class="text-xs font-mono font-semibold text-[#2D5A3D] bg-[#2D5A3D]/10 px-2.5 py-1 rounded-lg">01</span>
+                <div>
+                  <h3 class="text-sm font-semibold text-[#1F2421]">Dependencia humana</h3>
+                  <p class="text-sm text-[#1F2421]/75 mt-0.5">El riego manual depende de la intervención humana.</p>
+                </div>
+              </div>
+            </div>
+            <div class="problem-card p-4 sm:p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/10 transition-all duration-500" data-threshold="0.33">
+              <div class="flex items-start gap-4">
+                <span class="text-xs font-mono font-semibold text-[#2D5A3D] bg-[#2D5A3D]/10 px-2.5 py-1 rounded-lg">02</span>
+                <div>
+                  <h3 class="text-sm font-semibold text-[#1F2421]">Horarios rígidos</h3>
+                  <p class="text-sm text-[#1F2421]/75 mt-0.5">Los horarios fijos no necesariamente representan las condiciones reales del suelo.</p>
+                </div>
+              </div>
+            </div>
+            <div class="problem-card p-4 sm:p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/10 transition-all duration-500" data-threshold="0.60">
+              <div class="flex items-start gap-4">
+                <span class="text-xs font-mono font-semibold text-[#2D5A3D] bg-[#2D5A3D]/10 px-2.5 py-1 rounded-lg">03</span>
+                <div>
+                  <h3 class="text-sm font-semibold text-[#1F2421]">Riesgo de desatención</h3>
+                  <p class="text-sm text-[#1F2421]/75 mt-0.5">La falta de seguimiento puede ocasionar que el riego se olvide o se realice en momentos inadecuados.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ESCENA 03 — LA SOLUCIÓN (DIAGRAMA SVG ANIMADO DEL PROTOTIPO COMPLETO)
+       ========================================================================= -->
+  <section id="escena-03" class="relative bg-[#FAF8F5] scrolly-tall-180">
+    <div class="scrolly-sticky flex items-center py-20 px-4 sm:px-8">
+      <div class="max-w-6xl mx-auto w-full space-y-8">
+        <div class="max-w-3xl space-y-4">
+          <span class="text-xs font-semibold tracking-widest uppercase text-[#2D5A3D]">Escena 03 · La Solución</span>
+          <h2 class="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1F2421]">
+            Un sistema que responde al suelo.
+          </h2>
+          <p class="text-base sm:text-lg text-[#1F2421]/75 leading-relaxed">
+            El sistema utiliza un sensor resistivo para obtener información sobre la humedad del suelo. El ESP32 procesa la lectura y controla una bomba de agua DC mediante un MOSFET, de acuerdo con la lógica de control programada.
+          </p>
+        </div>
+
+        <div class="rounded-[2rem] bg-[#F2EFE9] border border-[#1F2421]/10 p-5 sm:p-8 space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium uppercase tracking-wide border bg-[#2D5A3D]/10 text-[#2D5A3D] border-[#2D5A3D]/25">
+              Dato confirmado · Flujo funcional
+            </span>
+            <span class="text-xs text-[#1F2421]/60 italic">
+              Diagrama funcional conceptual — no representa un esquema eléctrico verificado.
+            </span>
+          </div>
+
+          <!-- Dibujo SVG completo del prototipo conceptual -->
+          <div class="w-full rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/10 p-3 sm:p-5 overflow-hidden">
+            <svg viewBox="0 0 820 260" class="w-full h-auto" aria-label="Ilustración técnica conceptual del prototipo completo">
+              <rect x="8" y="8" width="804" height="244" rx="18" fill="#FAF8F5" />
+
+              <!-- Etapa 0: Suelo y Planta -->
+              <g class="proto-stage" data-stage="0">
+                <path d="M52 145 L148 145 L136 226 H64 Z" fill="#E6E1D8" stroke="#1F2421" stroke-opacity="0.2" />
+                <rect x="64" y="150" width="72" height="56" rx="8" fill="#4A3B32" />
+                <g class="anim-sway">
+                  <path d="M100 148 V86" stroke="#2D5A3D" stroke-width="3.5" stroke-linecap="round" />
+                  <path d="M100 112 C74 104 68 82 82 76 C94 74 104 94 100 112 Z" fill="#8CA992" />
+                  <path d="M100 104 C126 96 132 74 118 68 C106 66 96 86 100 104 Z" fill="#2D5A3D" />
+                  <path d="M100 88 C86 64 96 42 104 42 C114 44 114 68 100 88 Z" fill="#2D5A3D" />
+                </g>
+                <text x="100" y="244" text-anchor="middle" font-size="11" font-weight="600" fill="#1F2421">SUELO Y PLANTA</text>
+              </g>
+
+              <!-- Etapa 1: Sensor resistivo -->
+              <g class="proto-stage" data-stage="1">
+                <rect x="114" y="138" width="18" height="14" rx="2" fill="#2D5A3D" />
+                <rect x="117" y="152" width="3.5" height="38" fill="#D5DBD7" />
+                <rect x="125" y="152" width="3.5" height="38" fill="#D5DBD7" />
+                <path d="M132 145 H228" stroke="#2D5A3D" stroke-width="2.5" stroke-dasharray="6 5" class="anim-signal" />
+                <text x="180" y="136" text-anchor="middle" font-size="10" fill="#2D5A3D" font-weight="600">Señal del sensor</text>
+              </g>
+
+              <!-- Etapa 2: ESP32 + Batería 3,7 V con USB -->
+              <g class="proto-stage" data-stage="2">
+                <rect x="230" y="102" width="124" height="86" rx="12" fill="#1F2421" />
+                <rect x="252" y="118" width="80" height="46" rx="5" fill="#D5DBD7" />
+                <text x="292" y="145" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2421" font-family="monospace">ESP32</text>
+                <circle cx="342" cy="116" r="4" fill="#8CA992" class="anim-pulse-dot" />
+                <text x="292" y="210" text-anchor="middle" font-size="11" font-weight="600" fill="#1F2421">CONTROLADOR</text>
+
+                <rect x="244" y="26" width="96" height="40" rx="8" fill="#F2EFE9" stroke="#2D5A3D" stroke-width="1.8" />
+                <text x="292" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#2D5A3D">Batería 3,7 V</text>
+                <text x="292" y="58" text-anchor="middle" font-size="9" fill="#1F2421" opacity="0.7">Recarga por USB</text>
+                <path d="M292 66 V100" stroke="#8CA992" stroke-width="2" stroke-dasharray="4 4" class="anim-signal" />
+              </g>
+
+              <!-- Etapa 3: MOSFET -->
+              <g class="proto-stage" data-stage="3">
+                <path d="M354 145 H436" stroke="#2D5A3D" stroke-width="2.5" stroke-dasharray="6 5" class="anim-signal" />
+                <rect x="438" y="114" width="94" height="62" rx="10" fill="#F2EFE9" stroke="#1F2421" stroke-width="2" />
+                <text x="485" y="144" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2421" font-family="monospace">MOSFET</text>
+                <text x="485" y="160" text-anchor="middle" font-size="9" fill="#2D5A3D">Conmutación</text>
+                <text x="485" y="210" text-anchor="middle" font-size="11" font-weight="600" fill="#1F2421">ACCIONAMIENTO</text>
+              </g>
+
+              <!-- Etapa 4: Bomba DC en depósito -->
+              <g class="proto-stage" data-stage="4">
+                <path d="M532 145 H614" stroke="#2D5A3D" stroke-width="2.5" stroke-dasharray="6 5" class="anim-signal" />
+                <rect x="616" y="128" width="144" height="82" rx="14" fill="#8CA992" fill-opacity="0.22" stroke="#2D5A3D" stroke-opacity="0.35" />
+                <rect x="646" y="146" width="84" height="46" rx="10" fill="#2D5A3D" />
+                <circle cx="688" cy="169" r="13" fill="#FAF8F5" />
+                <g class="anim-spin">
+                  <line x1="688" y1="160" x2="688" y2="178" stroke="#2D5A3D" stroke-width="2.5" />
+                  <line x1="679" y1="169" x2="697" y2="169" stroke="#2D5A3D" stroke-width="2.5" />
+                </g>
+                <text x="688" y="232" text-anchor="middle" font-size="11" font-weight="600" fill="#1F2421">BOMBA DC</text>
+              </g>
+
+              <!-- Etapa 5: Tubería de riego regresando a la planta -->
+              <g class="proto-stage" data-stage="5">
+                <path d="M688 146 V38 Q688 22 670 22 H136 Q116 22 116 42 V102" stroke="#2D5A3D" stroke-width="3.5" stroke-dasharray="8 6" fill="none" class="anim-signal" />
+                <circle cx="116" cy="116" r="4" fill="#2D5A3D" class="anim-drop" />
+                <circle cx="116" cy="130" r="3" fill="#8CA992" class="anim-drop" />
+                <text x="465" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#2D5A3D">FLUJO DE RIEGO HACIA LA PLANTA</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Línea de progreso SVG + 6 bloques del flujo -->
+          <div class="relative">
+            <svg viewBox="0 0 1000 30" class="hidden md:block w-full h-8 mb-2 overflow-visible" preserveAspectRatio="none">
+              <line x1="60" y1="15" x2="940" y2="15" stroke="#1F2421" stroke-opacity="0.12" stroke-width="3" stroke-linecap="round" />
+              <line id="flowProgressLine" x1="60" y1="15" x2="940" y2="15" stroke="#2D5A3D" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="880" stroke-dashoffset="880" />
+            </svg>
+            <div id="flowCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ESCENA 04 — ANATOMÍA DEL SISTEMA (VISTA EXPLOSIONADA + IMAGEN INFERIOR)
+       ========================================================================= -->
+  <section id="escena-04" class="relative bg-[#F2EFE9] scrolly-tall-250">
+    <div class="scrolly-sticky flex items-center py-20 px-4 sm:px-8">
+      <div class="max-w-6xl mx-auto w-full space-y-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <span class="text-xs font-semibold tracking-widest uppercase text-[#2D5A3D]">Escena 04 · Anatomía del Sistema</span>
+            <h2 class="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1F2421] mt-2">
+              Cada componente tiene una función.
+            </h2>
+          </div>
+          <p class="text-xs sm:text-sm text-[#1F2421]/65 max-w-md">
+            Explora la vista explosionada del hardware. Cada pieza conserva su ilustración técnica arriba y ofrece un espacio inferior para añadir una imagen complementaria.
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-8 items-start">
+          <!-- Vista explosionada interactiva -->
+          <div id="explodedCanvas" class="lg:col-span-7 relative h-[400px] sm:h-[460px] rounded-[2rem] bg-[#FAF8F5] border border-[#1F2421]/10 overflow-hidden flex items-center justify-center">
+            <svg id="explodedLinesSvg" viewBox="-220 -200 440 400" class="absolute inset-0 w-full h-full pointer-events-none">
+              <circle cx="0" cy="0" r="110" fill="none" stroke="#2D5A3D" stroke-opacity="0.16" stroke-dasharray="5 5" />
+              <circle cx="0" cy="0" r="170" fill="none" stroke="#1F2421" stroke-opacity="0.06" />
+            </svg>
+
+            <div class="relative z-10 w-24 h-24 rounded-2xl bg-[#2D5A3D]/10 border border-[#2D5A3D]/25 flex flex-col items-center justify-center text-center shadow-sm">
+              <svg class="w-6 h-6 text-[#2D5A3D]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
+                <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
+              </svg>
+              <span class="text-[9px] font-semibold uppercase tracking-wider text-[#2D5A3D] mt-1">Prototipo</span>
+            </div>
+
+            <div id="explodedNodesLayer" class="absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+          </div>
+
+          <!-- Ficha técnica del componente activo -->
+          <div class="lg:col-span-5 space-y-4">
+            <div id="componentQuickTabs" class="flex flex-wrap gap-1.5"></div>
+
+            <div class="p-6 rounded-[1.75rem] bg-[#FAF8F5] border border-[#1F2421]/10 shadow-sm space-y-4">
+              <div class="flex items-center justify-between gap-2">
+                <span id="compRole" class="text-xs font-medium uppercase tracking-wider text-[#2D5A3D]"></span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium uppercase border bg-[#2D5A3D]/10 text-[#2D5A3D] border-[#2D5A3D]/25">
+                  Dato confirmado
+                </span>
+              </div>
+
+              <!-- Dibujo técnico SVG (SIEMPRE visible arriba) -->
+              <div class="relative rounded-2xl bg-[#F2EFE9] border border-[#1F2421]/10 overflow-hidden p-3 flex items-center justify-center min-h-[176px]">
+                <div id="compSvgContainer" class="w-full"></div>
+                <span class="absolute top-2.5 left-2.5 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#FAF8F5]/90 text-[#1F2421]/75 border border-[#1F2421]/10">
+                  Ilustración técnica
+                </span>
+              </div>
+
+              <!-- Nombre y descripción fiel -->
+              <div>
+                <h3 id="compName" class="text-2xl font-semibold text-[#1F2421]"></h3>
+                <p id="compDesc" class="text-sm text-[#1F2421]/75 mt-1.5 leading-relaxed"></p>
+              </div>
+
+              <!-- Espacio inferior para imagen complementaria (NO sustituye al SVG) -->
+              <div id="compExtraImageArea"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ESCENA 05 — FUNCIONAMIENTO INTERNO (SIMULADOR INTERACTIVO DE LECTURA)
+       ========================================================================= -->
+  <section id="escena-05" class="py-24 sm:py-32 px-4 sm:px-8 bg-[#FAF8F5]">
+    <div class="max-w-6xl mx-auto space-y-12">
+      <div class="max-w-3xl space-y-4">
+        <span class="text-xs font-semibold tracking-widest uppercase text-[#2D5A3D]">Escena 05 · Funcionamiento Interno</span>
+        <h2 class="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1F2421]">
+          De una condición física a una acción electrónica.
+        </h2>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+        <!-- 5 pasos + Acordeón de parámetros pendientes -->
+        <div class="lg:col-span-6 space-y-3">
+          <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#F2EFE9]/75 border border-[#1F2421]/8">
+            <span class="w-7 h-7 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-xs font-mono flex items-center justify-center shrink-0">1</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 pt-0.5">Los electrodos interactúan eléctricamente con el suelo.</p>
+          </div>
+          <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#F2EFE9]/75 border border-[#1F2421]/8">
+            <span class="w-7 h-7 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-xs font-mono flex items-center justify-center shrink-0">2</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 pt-0.5">La conductividad cambia según las condiciones de humedad.</p>
+          </div>
+          <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#F2EFE9]/75 border border-[#1F2421]/8">
+            <span class="w-7 h-7 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-xs font-mono flex items-center justify-center shrink-0">3</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 pt-0.5">El circuito proporciona una señal que puede interpretar el ESP32.</p>
+          </div>
+          <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#F2EFE9]/75 border border-[#1F2421]/8">
+            <span class="w-7 h-7 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-xs font-mono flex items-center justify-center shrink-0">4</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 pt-0.5">El ESP32 procesa la lectura.</p>
+          </div>
+          <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#F2EFE9]/75 border border-[#1F2421]/8">
+            <span class="w-7 h-7 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-xs font-mono flex items-center justify-center shrink-0">5</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 pt-0.5">El MOSFET controla el accionamiento eléctrico de la bomba.</p>
+          </div>
+
+          <!-- Bloque diferenciado: Pendiente de confirmar -->
+          <div class="pt-3">
+            <div class="border border-[#1F2421]/12 rounded-2xl bg-[#FAF8F5] overflow-hidden">
+              <button
+                type="button"
+                id="pendingAccordionBtn"
+                aria-expanded="true"
+                class="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-[#1F2421]/[0.02] transition-colors cursor-pointer"
+              >
+                <div class="flex flex-wrap items-center gap-2.5">
+                  <span class="text-sm font-semibold text-[#1F2421]">Parámetros de control y programación</span>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase border bg-[#1F2421]/5 text-[#1F2421]/70 border-[#1F2421]/15">
+                    Pendiente de confirmar
+                  </span>
+                </div>
+                <svg id="pendingAccordionChevron" class="w-4 h-4 text-[#2D5A3D] transition-transform rotate-180 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </button>
+              <div id="pendingAccordionBody" class="px-5 pb-5 pt-2 border-t border-[#1F2421]/10 space-y-2.5">
+                <p class="text-xs text-[#1F2421]/65">
+                  Los siguientes parámetros del firmware no han sido fijados o confirmados en esta etapa:
+                </p>
+                <div class="flex items-start justify-between gap-3 p-3 rounded-xl bg-[#F2EFE9]/80">
+                  <div>
+                    <p class="text-xs font-semibold text-[#1F2421]">Umbral de activación</p>
+                    <p class="text-xs text-[#1F2421]/65">Valor digital exacto definido para activar el riego.</p>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1F2421]/10 text-[#1F2421]/70 shrink-0">[Por definir]</span>
+                </div>
+                <div class="flex items-start justify-between gap-3 p-3 rounded-xl bg-[#F2EFE9]/80">
+                  <div>
+                    <p class="text-xs font-semibold text-[#1F2421]">Histéresis</p>
+                    <p class="text-xs text-[#1F2421]/65">Margen para evitar activaciones repetitivas de la bomba.</p>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1F2421]/10 text-[#1F2421]/70 shrink-0">[Por definir]</span>
+                </div>
+                <div class="flex items-start justify-between gap-3 p-3 rounded-xl bg-[#F2EFE9]/80">
+                  <div>
+                    <p class="text-xs font-semibold text-[#1F2421]">Tiempos de funcionamiento</p>
+                    <p class="text-xs text-[#1F2421]/65">Duración de cada ciclo de riego o intervalo entre lecturas.</p>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1F2421]/10 text-[#1F2421]/70 shrink-0">[Por definir]</span>
+                </div>
+                <div class="flex items-start justify-between gap-3 p-3 rounded-xl bg-[#F2EFE9]/80">
+                  <div>
+                    <p class="text-xs font-semibold text-[#1F2421]">Lógica exacta de apagado</p>
+                    <p class="text-xs text-[#1F2421]/65">Condición específica programada para detener la bomba DC.</p>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1F2421]/10 text-[#1F2421]/70 shrink-0">[Por definir]</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulador interactivo de lectura digital + SVG en vivo -->
+        <div class="lg:col-span-6 p-6 sm:p-8 rounded-[2rem] bg-[#F2EFE9] border border-[#1F2421]/10 space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-sm font-semibold text-[#1F2421]">Indicador interactivo de lectura digital</span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium uppercase border bg-[#2D5A3D]/10 text-[#2D5A3D] border-[#2D5A3D]/25">
+              Dato confirmado · ≈ 0 a ≈ 4095
+            </span>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/8 text-center space-y-1.5">
+            <span class="text-[11px] uppercase tracking-widest text-[#1F2421]/50">
+              Valor digital observado (NO es porcentaje de humedad)
+            </span>
+            <div id="simReadingValue" class="text-5xl sm:text-6xl font-mono font-semibold text-[#2D5A3D]">3200</div>
+            <p id="simReadingLabel" class="text-xs font-medium text-[#1F2421]/70">Tendencia hacia condición seca (cercano a 4095)</p>
+          </div>
+
+          <!-- Dibujo SVG en vivo del sensor en el suelo -->
+          <div class="rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/10 p-4">
+            <svg viewBox="0 0 360 150" class="w-full h-auto" aria-label="Simulación en vivo del sensor resistivo en el suelo">
+              <rect id="simSoilRect" x="20" y="48" width="320" height="88" rx="14" fill="#8A735C" class="transition-colors duration-300" />
+              <g id="simWaterParticles" style="opacity: 0.22; transition: opacity 0.25s;">
+                <circle cx="70" cy="84" r="5" fill="#8CA992" />
+                <circle cx="110" cy="112" r="4" fill="#8CA992" />
+                <circle cx="180" cy="96" r="6" fill="#8CA992" />
+                <circle cx="245" cy="82" r="5" fill="#8CA992" />
+                <circle cx="285" cy="110" r="4.5" fill="#8CA992" />
+              </g>
+              <rect x="148" y="14" width="64" height="36" rx="6" fill="#2D5A3D" />
+              <text x="180" y="36" text-anchor="middle" font-size="10" font-weight="700" fill="#FAF8F5" font-family="monospace">SENSOR</text>
+              <rect x="158" y="50" width="9" height="72" rx="3" fill="#D5DBD7" stroke="#1F2421" stroke-width="1" />
+              <rect x="193" y="50" width="9" height="72" rx="3" fill="#D5DBD7" stroke="#1F2421" stroke-width="1" />
+              <g id="simWaves" style="opacity: 0.35; transition: opacity 0.25s;">
+                <path d="M170 72 Q180 65 190 72" stroke="#8CA992" stroke-width="2.5" fill="none" class="anim-wave" />
+                <path d="M170 90 Q180 83 190 90" stroke="#8CA992" stroke-width="2.5" fill="none" class="anim-wave-delayed" />
+                <path d="M170 108 Q180 101 190 108" stroke="#8CA992" stroke-width="2.5" fill="none" class="anim-wave" />
+              </g>
+            </svg>
+          </div>
+
+          <div class="space-y-2">
+            <input
+              id="simSlider"
+              type="range"
+              min="0"
+              max="4095"
+              value="3200"
+              aria-label="Simular lectura digital del sensor resistivo entre 0 y 4095"
+              class="w-full cursor-pointer"
+            />
+            <div class="flex justify-between text-xs font-medium">
+              <div>
+                <span class="block text-[#2D5A3D] font-semibold">SUELO HÚMEDO</span>
+                <span class="font-mono text-[#1F2421]/60">aproximadamente 0</span>
+              </div>
+              <div class="text-right">
+                <span class="block text-[#7F4F24] font-semibold">SUELO SECO</span>
+                <span class="font-mono text-[#1F2421]/60">aproximadamente 4095</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[#2D5A3D]/8 border border-[#2D5A3D]/20 text-xs text-[#1F2421]/80 leading-relaxed">
+            <strong>Aclaración técnica:</strong> Estos valores son lecturas digitales observadas en el sistema y no representan porcentajes de humedad.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ESCENA 06 — DECISIONES DE INGENIERÍA (SOLAR VS USB)
+       ========================================================================= -->
+  <section id="escena-06" class="relative bg-[#F2EFE9] scrolly-tall-190">
+    <div class="scrolly-sticky flex items-center py-20 px-4 sm:px-8">
+      <div class="max-w-6xl mx-auto w-full space-y-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <span class="text-xs font-semibold tracking-widest uppercase text-[#2D5A3D]">Escena 06 · Decisiones de Ingeniería</span>
+            <h2 class="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1F2421] mt-2">
+              La autonomía también debe ser viable.
+            </h2>
+          </div>
+
+          <!-- Selector manual / sincronizado -->
+          <div class="inline-flex p-1 rounded-full bg-[#FAF8F5] border border-[#1F2421]/10 self-start">
+            <button type="button" data-eng-mode="auto" class="eng-mode-btn px-3.5 py-1.5 rounded-full text-xs font-medium bg-[#2D5A3D] text-[#FAF8F5] cursor-pointer transition-colors">Sincronizado</button>
+            <button type="button" data-eng-mode="solar" class="eng-mode-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-[#1F2421]/70 cursor-pointer transition-colors">Propuesta Solar</button>
+            <button type="button" data-eng-mode="usb" class="eng-mode-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-[#1F2421]/70 cursor-pointer transition-colors">Final USB</button>
+          </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6 items-stretch">
+          <!-- Propuesta Solar -->
+          <div id="solarCard" class="p-6 sm:p-8 rounded-[2rem] bg-[#FAF8F5] border-2 border-[#1F2421]/25 transition-all duration-500 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-[#9C6644]">Propuesta inicial · Solar</span>
+                <span class="text-[11px] font-mono text-[#1F2421]/50">Descartada en prototipo</span>
+              </div>
+              <h3 class="text-2xl font-semibold text-[#1F2421]">Alimentación con paneles solares</h3>
+              <p class="text-sm text-[#1F2421]/75">
+                Se buscaba conseguir un sistema con mayor autonomía energética y reducir la necesidad de intervención humana.
+              </p>
+
+              <!-- 3 paneles conceptuales de 300 mW -->
+              <div class="grid grid-cols-3 gap-2 py-2">
+                <div class="p-3 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/10 text-center">
+                  <div class="grid grid-cols-3 gap-0.5 mb-1.5 opacity-45"><div class="h-2 bg-[#1F2421]"></div><div class="h-2 bg-[#1F2421]"></div><div class="h-2 bg-[#1F2421]"></div></div>
+                  <span class="text-[10px] font-mono text-[#1F2421]/75">300 mW</span>
+                </div>
+                <div class="p-3 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/10 text-center">
+                  <div class="grid grid-cols-3 gap-0.5 mb-1.5 opacity-45"><div class="h-2 bg-[#1F2421]"></div><div class="h-2 bg-[#1F2421]"></div><div class="h-2 bg-[#1F2421]"></div></div>
+                  <span class="text-[10px] font-mono text-[#1F2421]/75">300 mW</span>
+                </div>
+                <div class="p-3 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/10 text-center">
+                  <div class="grid grid-cols-3 gap-0.5 mb-1.5 opacity-45"><div class="h-2 bg-[#1F2421]"></div><div class="h-2 bg-[#1F2421]"></div><div class="h-2 bg-[#1F2421]"></div></div>
+                  <span class="text-[10px] font-mono text-[#1F2421]/75">300 mW</span>
+                </div>
+              </div>
+
+              <ul class="space-y-2 text-sm text-[#1F2421]/80">
+                <li class="flex items-start gap-2.5"><span class="w-1.5 h-1.5 rounded-full bg-[#9C6644] mt-2 shrink-0"></span><span>Los paneles solares disponibles tenían una potencia nominal de 300 mW por unidad.</span></li>
+                <li class="flex items-start gap-2.5"><span class="w-1.5 h-1.5 rounded-full bg-[#9C6644] mt-2 shrink-0"></span><span>Se estimó que serían necesarias al menos tres unidades.</span></li>
+                <li class="flex items-start gap-2.5"><span class="w-1.5 h-1.5 rounded-full bg-[#9C6644] mt-2 shrink-0"></span><span>La superficie necesaria aumentaba considerablemente y la implementación incrementaba el costo.</span></li>
+                <li class="flex items-start gap-2.5"><span class="w-1.5 h-1.5 rounded-full bg-[#9C6644] mt-2 shrink-0"></span><span>No existía certeza de que la generación energética fuera suficiente para mantener la batería cargada.</span></li>
+              </ul>
+            </div>
+            <div class="mt-6 pt-4 border-t border-[#1F2421]/10 text-xs text-[#1F2421]/65">
+              También habría requerido estudiar el consumo del sistema, la energía necesaria para alimentar la bomba, la capacidad de la batería y un circuito apropiado de carga.
+            </div>
+          </div>
+
+          <!-- Implementación Final USB -->
+          <div id="usbCard" class="p-6 sm:p-8 rounded-[2rem] bg-[#FAF8F5] border-2 border-[#1F2421]/10 transition-all duration-500 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-[#2D5A3D]">Implementación final · USB</span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium uppercase border bg-[#2D5A3D]/10 text-[#2D5A3D] border-[#2D5A3D]/25">Dato confirmado</span>
+              </div>
+              <h3 class="text-2xl font-semibold text-[#1F2421]">Batería de litio de 3,7 V recargada mediante USB</h3>
+              <p class="text-sm text-[#1F2421]/80 leading-relaxed">
+                Esta decisión simplificó la implementación y redujo la complejidad y el costo del prototipo. La batería alimenta el sistema durante su funcionamiento y se recarga mediante USB.
+              </p>
+
+              <div class="p-5 rounded-2xl bg-[#2D5A3D]/6 border border-[#2D5A3D]/20 flex items-center justify-around gap-3 my-2">
+                <div class="text-center">
+                  <span class="text-xs font-mono font-bold text-[#2D5A3D] block">USB</span>
+                  <span class="text-[11px] text-[#1F2421]/70">Recarga</span>
+                </div>
+                <div class="h-[2px] flex-1 bg-gradient-to-r from-[#2D5A3D] to-[#8CA992]"></div>
+                <div class="text-center">
+                  <span class="text-xs font-mono font-bold text-[#2D5A3D] block">Litio 3,7 V</span>
+                  <span class="text-[11px] text-[#1F2421]/70">Alimentación</span>
+                </div>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/10 text-xs text-[#1F2421]/75">
+                <strong>Pendiente de confirmar:</strong> La capacidad exacta y la autonomía en horas de la batería no están confirmadas.
+              </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-[#2D5A3D]/15 text-sm font-medium text-[#2D5A3D]">
+              La autonomía energética completa sigue siendo una oportunidad de mejora.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ESCENA 07 — RESULTADOS Y VALIDACIÓN
+       ========================================================================= -->
+  <section id="escena-07" class="py-24 sm:py-32 px-4 sm:px-8 bg-[#FAF8F5]">
+    <div class="max-w-6xl mx-auto space-y-12">
+      <div class="max-w-3xl space-y-4">
+        <span class="text-xs font-semibold tracking-widest uppercase text-[#2D5A3D]">Escena 07 · Resultados y Validación</span>
+        <h2 class="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1F2421]">
+          De la teoría al prototipo.
+        </h2>
+      </div>
+
+      <!-- Datos confirmados + Gráfica conceptual -->
+      <div class="grid lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 grid gap-4">
+          <div class="p-6 rounded-[1.75rem] bg-[#F2EFE9] border border-[#1F2421]/10 space-y-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase border bg-[#2D5A3D]/10 text-[#2D5A3D] border-[#2D5A3D]/25">Dato confirmado</span>
+            <div class="text-4xl font-mono font-semibold text-[#2D5A3D] pt-1">≈ 0</div>
+            <h3 class="text-base font-semibold text-[#1F2421]">Condiciones húmedas</h3>
+            <p class="text-sm text-[#1F2421]/75">Se observaron lecturas digitales cercanas a 0 en condiciones húmedas.</p>
+          </div>
+          <div class="p-6 rounded-[1.75rem] bg-[#F2EFE9] border border-[#1F2421]/10 space-y-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase border bg-[#2D5A3D]/10 text-[#2D5A3D] border-[#2D5A3D]/25">Dato confirmado</span>
+            <div class="text-4xl font-mono font-semibold text-[#2D5A3D] pt-1">≈ 4095</div>
+            <h3 class="text-base font-semibold text-[#1F2421]">Condiciones secas</h3>
+            <p class="text-sm text-[#1F2421]/75">Se observaron lecturas digitales de hasta aproximadamente 4095 en condiciones secas.</p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 p-6 sm:p-8 rounded-[1.75rem] bg-[#F2EFE9] border border-[#1F2421]/10 flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 class="text-sm font-semibold text-[#1F2421]">Comportamiento conceptual de la lectura digital</h3>
+            <span class="text-[11px] px-2.5 py-1 rounded-full bg-[#1F2421]/8 text-[#1F2421]/70">Representación conceptual ilustrativa</span>
+          </div>
+
+          <svg viewBox="0 0 500 210" class="w-full h-auto" aria-label="Gráfica conceptual ilustrativa de lecturas digitales">
+            <line x1="55" y1="25" x2="55" y2="175" stroke="#1F2421" stroke-opacity="0.25" stroke-width="1.5" />
+            <line x1="55" y1="175" x2="475" y2="175" stroke="#1F2421" stroke-opacity="0.25" stroke-width="1.5" />
+            <text x="46" y="34" text-anchor="end" font-size="11" fill="#1F2421" opacity="0.7" font-family="monospace">~4095</text>
+            <text x="46" y="175" text-anchor="end" font-size="11" fill="#1F2421" opacity="0.7" font-family="monospace">~0</text>
+            <path d="M65 162 C130 155, 190 120, 260 72 C320 38, 390 32, 465 30" fill="none" stroke="#2D5A3D" stroke-width="3" stroke-dasharray="6 6" />
+            <circle cx="70" cy="161" r="5" fill="#2D5A3D" />
+            <circle cx="460" cy="31" r="5" fill="#9C6644" />
+            <text x="80" y="152" font-size="11" fill="#2D5A3D" font-weight="600">Húmedo (≈ 0)</text>
+            <text x="355" y="54" font-size="11" fill="#7F4F24" font-weight="600">Seco (≈ 4095)</text>
+            <text x="265" y="198" text-anchor="middle" font-size="11" fill="#1F2421" opacity="0.6">Transición conceptual de humedad en el suelo</text>
+          </svg>
+
+          <p class="text-xs text-[#1F2421]/60 mt-3">
+            Nota: Esta gráfica es únicamente ilustrativa y no representa una serie temporal medida.
+          </p>
+        </div>
+      </div>
+
+      <!-- Tarjetas interactivas de evidencia -->
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-lg font-semibold text-[#1F2421]">Evidencia visual y registro del prototipo</h3>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium uppercase border bg-[#1F2421]/5 text-[#1F2421]/70 border-[#1F2421]/15">
+            Pendiente de confirmar · Espacios editables
+          </span>
+        </div>
+        <div id="evidenceGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ESCENA 08 — CONCLUSIONES Y CIERRE
+       ========================================================================= -->
+  <section id="escena-08" class="py-24 sm:py-32 px-4 sm:px-8 bg-[#F2EFE9]">
+    <div class="max-w-6xl mx-auto space-y-14">
+      <div class="max-w-3xl space-y-4">
+        <span class="text-xs font-semibold tracking-widest uppercase text-[#2D5A3D]">Escena 08 · Conclusiones</span>
+        <h2 class="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1F2421]">
+          Automatizar es reducir la dependencia.
+        </h2>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-8">
+        <!-- 5 Conclusiones -->
+        <div class="lg:col-span-7 space-y-3">
+          <div class="flex items-start gap-4 p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/8">
+            <span class="text-sm font-mono font-bold text-[#2D5A3D]">01</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 leading-relaxed">El ESP32 permite integrar el monitoreo de humedad con el control de un sistema de riego.</p>
+          </div>
+          <div class="flex items-start gap-4 p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/8">
+            <span class="text-sm font-mono font-bold text-[#2D5A3D]">02</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 leading-relaxed">El sensor resistivo permite obtener información sobre las condiciones de humedad del suelo.</p>
+          </div>
+          <div class="flex items-start gap-4 p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/8">
+            <span class="text-sm font-mono font-bold text-[#2D5A3D]">03</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 leading-relaxed">El MOSFET permite controlar el accionamiento de una bomba DC.</p>
+          </div>
+          <div class="flex items-start gap-4 p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/8">
+            <span class="text-sm font-mono font-bold text-[#2D5A3D]">04</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 leading-relaxed">La selección de la alimentación energética implica considerar potencia, espacio, costo y complejidad.</p>
+          </div>
+          <div class="flex items-start gap-4 p-5 rounded-2xl bg-[#FAF8F5] border border-[#1F2421]/8">
+            <span class="text-sm font-mono font-bold text-[#2D5A3D]">05</span>
+            <p class="text-sm sm:text-base text-[#1F2421]/85 leading-relaxed">El prototipo constituye una base para desarrollar un sistema con mayor autonomía.</p>
+          </div>
+        </div>
+
+        <!-- 6 Posibles mejoras futuras -->
+        <div class="lg:col-span-5 p-6 sm:p-8 rounded-[2rem] bg-[#FAF8F5] border border-[#1F2421]/10 space-y-5">
+          <div class="text-sm font-semibold text-[#2D5A3D] uppercase tracking-wider">Posibles mejoras futuras</div>
+          <ul class="space-y-3 text-sm text-[#1F2421]/80">
+            <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 rounded-full bg-[#2D5A3D] mt-2 shrink-0"></span><span>Implementar un sistema solar correctamente dimensionado.</span></li>
+            <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 rounded-full bg-[#2D5A3D] mt-2 shrink-0"></span><span>Optimizar el consumo energético.</span></li>
+            <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 rounded-full bg-[#2D5A3D] mt-2 shrink-0"></span><span>Mejorar la calibración del sensor.</span></li>
+            <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 rounded-full bg-[#2D5A3D] mt-2 shrink-0"></span><span>Incorporar monitoreo del estado de la batería.</span></li>
+            <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 rounded-full bg-[#2D5A3D] mt-2 shrink-0"></span><span>Evaluar sensores capacitivos para reducir los problemas de corrosión asociados con los electrodos expuestos.</span></li>
+            <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 rounded-full bg-[#2D5A3D] mt-2 shrink-0"></span><span>Mejorar la autonomía del sistema.</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Cierre botánico + Frase + Volver al inicio -->
+      <div class="pt-10 border-t border-[#1F2421]/10 text-center space-y-6 max-w-2xl mx-auto">
+        <div class="w-20 h-20 mx-auto rounded-3xl bg-[#2D5A3D]/10 border border-[#2D5A3D]/20 flex items-center justify-center">
+          <svg viewBox="0 0 80 80" class="w-14 h-14 anim-sway" aria-hidden="true">
+            <path d="M40 66 V26" stroke="#2D5A3D" stroke-width="3" stroke-linecap="round" />
+            <path d="M40 44 C24 38 20 24 30 20 C37 19 42 32 40 44 Z" fill="#8CA992" />
+            <path d="M40 38 C56 32 60 18 50 14 C43 13 38 26 40 38 Z" fill="#2D5A3D" />
+            <path d="M40 28 C33 15 39 6 43 6 C48 8 47 19 40 28 Z" fill="#2D5A3D" />
+          </svg>
+        </div>
+
+        <blockquote class="text-2xl sm:text-3xl font-medium tracking-tight text-[#1F2421] leading-snug">
+          “Una solución tecnológica para que el cuidado no dependa únicamente de la memoria.”
+        </blockquote>
+
+        <button
+          type="button"
+          id="backToTopBtn"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-sm font-medium hover:bg-[#234730] transition-colors shadow-sm cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+          </svg>
+          Volver al inicio
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       MODAL PARA EDITAR DATOS ACADÉMICOS EN VIVO
+       ========================================================================= -->
+  <div
+    id="metaModal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Editar datos académicos"
+    class="hidden fixed inset-0 z-50 bg-[#1F2421]/40 backdrop-blur-sm flex items-center justify-center p-4"
+  >
+    <div class="w-full max-w-md rounded-3xl bg-[#FAF8F5] border border-[#1F2421]/12 p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-semibold text-[#1F2421]">Datos académicos del proyecto</h3>
+        <button type="button" id="closeMetaModalBtn" aria-label="Cerrar" class="p-1.5 rounded-full hover:bg-[#1F2421]/10 text-[#1F2421] cursor-pointer">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-[#1F2421]/70 mb-1" for="inputProjectName">Nombre del proyecto</label>
+          <input id="inputProjectName" type="text" value="[Nombre definitivo del proyecto]" class="w-full px-3.5 py-2.5 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/15 text-sm text-[#1F2421] focus:outline-none focus:border-[#2D5A3D]" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[#1F2421]/70 mb-1" for="inputAuthors">Autores</label>
+          <input id="inputAuthors" type="text" value="[Autores del proyecto]" class="w-full px-3.5 py-2.5 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/15 text-sm text-[#1F2421] focus:outline-none focus:border-[#2D5A3D]" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[#1F2421]/70 mb-1" for="inputCourse">Asignatura</label>
+          <input id="inputCourse" type="text" value="[Asignatura]" class="w-full px-3.5 py-2.5 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/15 text-sm text-[#1F2421] focus:outline-none focus:border-[#2D5A3D]" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[#1F2421]/70 mb-1" for="inputInstitution">Institución</label>
+          <input id="inputInstitution" type="text" value="[Institución educativa]" class="w-full px-3.5 py-2.5 rounded-xl bg-[#F2EFE9] border border-[#1F2421]/15 text-sm text-[#1F2421] focus:outline-none focus:border-[#2D5A3D]" />
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="button" id="saveMetaModalBtn" class="px-5 py-2 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-xs font-semibold hover:bg-[#234730] transition-colors cursor-pointer">
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       LÓGICA JAVASCRIPT PURA (SCROLLYTELLING, SVG, INTERACTIVIDAD Y CARGA)
+       ========================================================================= -->
+  <script>
+    /* 1. DATOS DEL PROYECTO */
+    const CHAPTERS = [
+      { id: 'escena-01', num: '01', label: 'Apertura' },
+      { id: 'escena-02', num: '02', label: 'El Problema' },
+      { id: 'escena-03', num: '03', label: 'La Solución' },
+      { id: 'escena-04', num: '04', label: 'Anatomía' },
+      { id: 'escena-05', num: '05', label: 'Funcionamiento' },
+      { id: 'escena-06', num: '06', label: 'Ingeniería' },
+      { id: 'escena-07', num: '07', label: 'Resultados' },
+      { id: 'escena-08', num: '08', label: 'Conclusiones' }
+    ];
+
+    const FLOW_NODES = [
+      { id: 'suelo', label: 'SUELO', sub: 'Condición física' },
+      { id: 'sensor', label: 'SENSOR', sub: 'Sensor resistivo' },
+      { id: 'esp32', label: 'ESP32', sub: 'Procesamiento' },
+      { id: 'mosfet', label: 'MOSFET', sub: 'Conmutación' },
+      { id: 'bomba', label: 'BOMBA', sub: 'Bomba de agua DC' },
+      { id: 'riego', label: 'RIEGO', sub: 'Aporte de agua' }
+    ];
+
+    const COMPONENTS = [
+      {
+        id: 'esp32',
+        name: 'ESP32',
+        role: 'Controlador principal',
+        description: 'Unidad de control encargada de procesar las lecturas y ejecutar el programa.',
+        placeholder: 'Añade una vista adicional del módulo ESP32',
+        pos: { x: 0, y: -115 }
+      },
+      {
+        id: 'sensor',
+        name: 'Sensor resistivo',
+        role: 'Sensado de suelo',
+        description: 'Dos electrodos metálicos detectan cambios en la conductividad eléctrica del suelo relacionados con su humedad.',
+        placeholder: 'Añade una vista adicional del sensor resistivo',
+        pos: { x: -145, y: -25 }
+      },
+      {
+        id: 'mosfet',
+        name: 'MOSFET',
+        role: 'Etapa de accionamiento',
+        description: 'Elemento de conmutación que permite controlar eléctricamente el accionamiento de la bomba.',
+        placeholder: 'Añade una vista adicional de la etapa MOSFET',
+        pos: { x: 145, y: -25 }
+      },
+      {
+        id: 'bomba',
+        name: 'Bomba de agua DC',
+        role: 'Actuador hidráulico',
+        description: 'Actuador encargado de impulsar el agua hacia la planta.',
+        placeholder: 'Añade una vista adicional de la bomba de agua DC',
+        pos: { x: 135, y: 95 }
+      },
+      {
+        id: 'bateria',
+        name: 'Batería de litio de 3,7 V',
+        role: 'Almacenamiento energético',
+        description: 'Almacena la energía que alimenta el sistema durante su funcionamiento.',
+        placeholder: 'Añade una vista adicional de la batería de 3,7 V',
+        pos: { x: -135, y: 95 }
+      },
+      {
+        id: 'usb',
+        name: 'USB',
+        role: 'Interfaz de recarga',
+        description: 'Se utiliza para recargar la batería.',
+        placeholder: 'Añade una vista adicional de la conexión USB',
+        pos: { x: 0, y: 140 }
+      }
+    ];
+
+    const EVIDENCE_SLOTS = [
+      { id: 'ensamblado', title: 'Prototipo ensamblado', desc: 'Espacio para incorporar vistas del montaje completo y sus conexiones.' },
+      { id: 'bomba', title: 'Funcionamiento de la bomba', desc: 'Registro visual del accionamiento de la bomba de agua DC.' },
+      { id: 'mediciones', title: 'Mediciones adicionales', desc: 'Registro de lecturas digitales observadas en distintas condiciones de suelo.' },
+      { id: 'pruebas', title: 'Resultados de las pruebas', desc: 'Documentación de ensayos realizados durante la validación del prototipo.' },
+      { id: 'retos', title: 'Retos de construcción', desc: 'Registro de dificultades técnicas, ajustes de montaje y aprendizajes.' }
+    ];
+
+    /* 2. ILUSTRACIONES SVG DETALLADAS DE CADA PIEZA */
+    function getHardwareSVG(id) {
+      switch (id) {
+        case 'esp32': {
+          let pins = '';
+          for (let i = 0; i < 9; i++) {
+            const cy = 38 + i * 10.5;
+            pins += `<circle cx="56" cy="${cy}" r="2.4" fill="#D8C28B" /><circle cx="184" cy="${cy}" r="2.4" fill="#D8C28B" />`;
+          }
+          return `
+            <svg viewBox="0 0 240 160" class="w-full h-40" aria-label="Ilustración técnica del ESP32">
+              <rect x="44" y="24" width="152" height="112" rx="10" fill="#1F2421" />
+              <rect x="50" y="30" width="140" height="100" rx="6" fill="#26302A" stroke="#8CA992" stroke-opacity="0.35" />
+              <path d="M58 46 H74 V38 H84 V52 H94 V38 H104 V46" stroke="#D8C28B" stroke-width="2.5" fill="none" />
+              <rect x="86" y="46" width="68" height="68" rx="5" fill="#D5DBD7" stroke="#1F2421" stroke-width="1.5" />
+              <text x="120" y="84" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2421" font-family="monospace">ESP32</text>
+              <circle cx="170" cy="64" r="4" fill="#2D5A3D" class="anim-pulse-dot" />
+              <circle cx="170" cy="64" r="8" fill="#8CA992" opacity="0.25" class="anim-pulse-dot" />
+              <rect x="164" y="88" width="12" height="16" rx="2" fill="#8CA992" />
+              ${pins}
+            </svg>`;
+        }
+        case 'sensor':
+          return `
+            <svg viewBox="0 0 240 160" class="w-full h-40" aria-label="Ilustración técnica del sensor resistivo">
+              <rect x="26" y="84" width="188" height="58" rx="14" fill="#4A3B32" opacity="0.16" />
+              <rect x="90" y="20" width="60" height="34" rx="6" fill="#2D5A3D" />
+              <circle cx="108" cy="34" r="3" fill="#FAF8F5" />
+              <circle cx="132" cy="34" r="3" fill="#FAF8F5" />
+              <line x1="108" y1="20" x2="108" y2="10" stroke="#1F2421" stroke-width="2.5" />
+              <line x1="132" y1="20" x2="132" y2="10" stroke="#1F2421" stroke-width="2.5" />
+              <path d="M98 54 H110 V132 L104 144 L98 132 Z" fill="#C9D0CC" stroke="#1F2421" stroke-width="1.3" />
+              <path d="M130 54 H142 V132 L136 144 L130 132 Z" fill="#C9D0CC" stroke="#1F2421" stroke-width="1.3" />
+              <path d="M114 96 Q120 90 126 96" stroke="#2D5A3D" stroke-width="2" fill="none" class="anim-wave" />
+              <path d="M114 112 Q120 106 126 112" stroke="#2D5A3D" stroke-width="2" fill="none" class="anim-wave-delayed" />
+              <path d="M114 126 Q120 120 126 126" stroke="#8CA992" stroke-width="2" fill="none" class="anim-wave" />
+            </svg>`;
+        case 'mosfet':
+          return `
+            <svg viewBox="0 0 240 160" class="w-full h-40" aria-label="Ilustración técnica del MOSFET">
+              <rect x="86" y="18" width="68" height="28" rx="4" fill="#C9D0CC" stroke="#1F2421" stroke-width="1.4" />
+              <circle cx="120" cy="32" r="7" fill="#FAF8F5" stroke="#1F2421" stroke-width="1.4" />
+              <rect x="82" y="44" width="76" height="54" rx="5" fill="#1F2421" />
+              <text x="120" y="75" text-anchor="middle" font-size="12" font-weight="700" fill="#FAF8F5" font-family="monospace">MOSFET</text>
+              <rect x="94" y="98" width="7" height="44" rx="2" fill="#B8C0BC" />
+              <rect x="116.5" y="98" width="7" height="44" rx="2" fill="#B8C0BC" />
+              <rect x="139" y="98" width="7" height="44" rx="2" fill="#B8C0BC" />
+              <path d="M36 120 H66 V106 H82" stroke="#2D5A3D" stroke-width="2.2" stroke-dasharray="5 4" fill="none" class="anim-signal" />
+              <path d="M158 120 H204" stroke="#8CA992" stroke-width="2.2" stroke-dasharray="5 4" fill="none" class="anim-signal" />
+            </svg>`;
+        case 'bomba':
+          return `
+            <svg viewBox="0 0 240 160" class="w-full h-40" aria-label="Ilustración técnica de la bomba de agua DC">
+              <rect x="58" y="48" width="102" height="68" rx="16" fill="#2D5A3D" />
+              <rect x="66" y="56" width="86" height="52" rx="12" fill="#3B7250" />
+              <circle cx="109" cy="82" r="21" fill="#FAF8F5" opacity="0.92" />
+              <g class="anim-spin">
+                <line x1="109" y1="66" x2="109" y2="98" stroke="#2D5A3D" stroke-width="3.5" stroke-linecap="round" />
+                <line x1="93" y1="82" x2="125" y2="82" stroke="#2D5A3D" stroke-width="3.5" stroke-linecap="round" />
+              </g>
+              <rect x="34" y="72" width="24" height="20" rx="4" fill="#1F2421" />
+              <rect x="118" y="24" width="18" height="24" rx="4" fill="#1F2421" />
+              <path d="M127 22 Q155 10 182 32" stroke="#2D5A3D" stroke-width="3" stroke-dasharray="6 5" fill="none" class="anim-signal" />
+              <circle cx="190" cy="44" r="4" fill="#2D5A3D" class="anim-drop" />
+              <circle cx="198" cy="58" r="3" fill="#8CA992" class="anim-drop" />
+            </svg>`;
+        case 'bateria':
+          return `
+            <svg viewBox="0 0 240 160" class="w-full h-40" aria-label="Ilustración técnica de la batería de litio de 3,7 V">
+              <rect x="46" y="46" width="136" height="68" rx="12" fill="#FAF8F5" stroke="#1F2421" stroke-width="2.5" />
+              <rect x="182" y="66" width="12" height="28" rx="3" fill="#1F2421" />
+              <rect x="58" y="58" width="24" height="44" rx="4" fill="#2D5A3D" />
+              <rect x="88" y="58" width="24" height="44" rx="4" fill="#2D5A3D" opacity="0.82" />
+              <rect x="118" y="58" width="24" height="44" rx="4" fill="#8CA992" />
+              <text x="114" y="136" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2421" font-family="monospace">Litio 3,7 V</text>
+              <text x="164" y="86" text-anchor="middle" font-size="18" font-weight="700" fill="#2D5A3D">+</text>
+            </svg>`;
+        case 'usb':
+          return `
+            <svg viewBox="0 0 240 160" class="w-full h-40" aria-label="Ilustración técnica de la interfaz USB">
+              <path d="M24 80 H72" stroke="#1F2421" stroke-width="8" stroke-linecap="round" />
+              <rect x="70" y="58" width="66" height="44" rx="8" fill="#1F2421" />
+              <rect x="136" y="65" width="44" height="30" rx="3" fill="#D5DBD7" stroke="#1F2421" stroke-width="1.5" />
+              <rect x="150" y="72" width="10" height="5" rx="1" fill="#1F2421" opacity="0.6" />
+              <rect x="150" y="83" width="10" height="5" rx="1" fill="#1F2421" opacity="0.6" />
+              <path d="M186 80 H218" stroke="#2D5A3D" stroke-width="3" stroke-dasharray="6 5" class="anim-signal" />
+              <text x="103" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#FAF8F5" font-family="monospace">USB</text>
+            </svg>`;
+        default:
+          return '';
+      }
+    }
+
+    /* 3. ESTADO GLOBAL DE LA APLICACIÓN */
+    const state = {
+      reducedMotion: false,
+      activeChapter: 'escena-01',
+      selectedCompIdx: 0,
+      manualCompOverride: false,
+      engineeringMode: 'auto', // 'auto' | 'solar' | 'usb'
+      compImages: {},
+      evidenceImages: {},
+      evidenceNotes: {}
+    };
+
+    /* 4. CONSTRUCCIÓN DE ELEMENTOS DINÁMICOS */
+    function initNavigation() {
+      const desktopNav = document.getElementById('desktopChapterNav');
+      const mobileNav = document.getElementById('mobileChapterNav');
+
+      CHAPTERS.forEach((ch) => {
+        // Escritorio
+        const btnD = document.createElement('button');
+        btnD.type = 'button';
+        btnD.dataset.chapter = ch.id;
+        btnD.className = 'chapter-desk-btn group flex items-center justify-end gap-2.5 py-1 cursor-pointer';
+        btnD.innerHTML = `
+          <span class="chapter-label text-[11px] font-medium tracking-wide transition-all duration-200 opacity-0 group-hover:opacity-80 text-[#1F2421] translate-x-2 group-hover:translate-x-0">
+            ${ch.num} · ${ch.label}
+          </span>
+          <span class="chapter-dot block rounded-full transition-all duration-300 w-2 h-2 bg-[#1F2421]/25 group-hover:bg-[#8CA992]"></span>
+        `;
+        btnD.addEventListener('click', () => scrollToChapter(ch.id));
+        desktopNav.appendChild(btnD);
+
+        // Móvil
+        const btnM = document.createElement('button');
+        btnM.type = 'button';
+        btnM.dataset.chapter = ch.id;
+        btnM.className = 'chapter-mob-btn text-left px-3 py-2 rounded-xl text-xs font-medium bg-[#F2EFE9] text-[#1F2421]/80 cursor-pointer';
+        btnM.innerHTML = `<span class="opacity-65 mr-1.5">${ch.num}</span>${ch.label}`;
+        btnM.addEventListener('click', () => {
+          scrollToChapter(ch.id);
+          mobileNav.classList.add('hidden');
+        });
+        mobileNav.appendChild(btnM);
+      });
+    }
+
+    function scrollToChapter(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: state.reducedMotion ? 'auto' : 'smooth' });
+      }
+    }
+
+    function updateChapterNavUI(activeId) {
+      document.querySelectorAll('.chapter-desk-btn').forEach((btn) => {
+        const isActive = btn.dataset.chapter === activeId;
+        const label = btn.querySelector('.chapter-label');
+        const dot = btn.querySelector('.chapter-dot');
+        if (isActive) {
+          label.className = 'chapter-label text-[11px] font-medium tracking-wide transition-all duration-200 opacity-100 text-[#2D5A3D] translate-x-0';
+          dot.className = 'chapter-dot block rounded-full transition-all duration-300 w-2.5 h-6 bg-[#2D5A3D]';
+        } else {
+          label.className = 'chapter-label text-[11px] font-medium tracking-wide transition-all duration-200 opacity-0 group-hover:opacity-80 text-[#1F2421] translate-x-2 group-hover:translate-x-0';
+          dot.className = 'chapter-dot block rounded-full transition-all duration-300 w-2 h-2 bg-[#1F2421]/25 group-hover:bg-[#8CA992]';
+        }
+      });
+
+      document.querySelectorAll('.chapter-mob-btn').forEach((btn) => {
+        const isActive = btn.dataset.chapter === activeId;
+        btn.className = isActive
+          ? 'chapter-mob-btn text-left px-3 py-2 rounded-xl text-xs font-medium bg-[#2D5A3D] text-[#FAF8F5] cursor-pointer'
+          : 'chapter-mob-btn text-left px-3 py-2 rounded-xl text-xs font-medium bg-[#F2EFE9] text-[#1F2421]/80 cursor-pointer';
+      });
+    }
+
+    function initFlowCards() {
+      const grid = document.getElementById('flowCardsGrid');
+      FLOW_NODES.forEach((node, idx) => {
+        const card = document.createElement('div');
+        card.className = 'flow-step-card p-4 rounded-2xl border bg-[#FAF8F5]/40 border-[#1F2421]/10 opacity-45 transition-all duration-300';
+        card.dataset.index = idx;
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-[10px] font-mono text-[#2D5A3D] font-semibold">0${idx + 1}</span>
+            <span class="flow-dot w-2 h-2 rounded-full bg-[#1F2421]/20"></span>
+          </div>
+          <p class="text-sm font-bold tracking-wide text-[#1F2421]">${node.label}</p>
+          <p class="text-xs text-[#1F2421]/60 mt-1">${node.sub}</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    /* 5. ESCENA 04 — ANATOMÍA Y CARGA DE IMAGEN COMPLEMENTARIA INFERIOR */
+    function initAnatomy() {
+      const linesSvg = document.getElementById('explodedLinesSvg');
+      const nodesLayer = document.getElementById('explodedNodesLayer');
+      const tabs = document.getElementById('componentQuickTabs');
+
+      COMPONENTS.forEach((comp, idx) => {
+        // Línea radial SVG
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('id', `exp-line-${idx}`);
+        line.setAttribute('x1', '0');
+        line.setAttribute('y1', '0');
+        line.setAttribute('x2', comp.pos.x);
+        line.setAttribute('y2', comp.pos.y);
+        line.setAttribute('stroke', '#1F2421');
+        line.setAttribute('stroke-opacity', '0.15');
+        line.setAttribute('stroke-width', '1.4');
+        line.setAttribute('stroke-dasharray', '6 5');
+        linesSvg.appendChild(line);
+
+        // Nodo flotante 2.5D
+        const nodeBtn = document.createElement('button');
+        nodeBtn.type = 'button';
+        nodeBtn.id = `exp-node-${idx}`;
+        nodeBtn.className = 'pointer-events-auto absolute px-3.5 py-2 rounded-2xl border text-xs font-semibold transition-all duration-300 cursor-pointer anim-float';
+        nodeBtn.style.animationDelay = `${idx * 0.45}s`;
+        nodeBtn.textContent = comp.name;
+        nodeBtn.addEventListener('click', () => {
+          state.manualCompOverride = true;
+          selectComponent(idx);
+        });
+        nodesLayer.appendChild(nodeBtn);
+
+        // Pestaña rápida
+        const tabBtn = document.createElement('button');
+        tabBtn.type = 'button';
+        tabBtn.id = `comp-tab-${idx}`;
+        tabBtn.className = 'px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer';
+        tabBtn.textContent = comp.name;
+        tabBtn.addEventListener('click', () => {
+          state.manualCompOverride = true;
+          selectComponent(idx);
+        });
+        tabs.appendChild(tabBtn);
+      });
+
+      selectComponent(0);
+    }
+
+    function selectComponent(idx) {
+      state.selectedCompIdx = idx;
+      const comp = COMPONENTS[idx];
+
+      document.getElementById('compRole').textContent = comp.role;
+      document.getElementById('compName').textContent = comp.name;
+      document.getElementById('compDesc').textContent = comp.description;
+      document.getElementById('compSvgContainer').innerHTML = getHardwareSVG(comp.id);
+
+      renderComponentExtraImage(comp);
+      updateAnatomyVisualState(lastP4);
+    }
+
+    function renderComponentExtraImage(comp) {
+      const container = document.getElementById('compExtraImageArea');
+      const imgSrc = state.compImages[comp.id];
+
+      if (imgSrc) {
+        container.innerHTML = `
+          <div class="rounded-2xl border border-[#1F2421]/12 bg-[#F2EFE9]/75 overflow-hidden">
+            <div class="px-4 py-2.5 flex items-center justify-between gap-2 border-b border-[#1F2421]/10">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#2D5A3D]">Vista adicional</span>
+              <div class="flex items-center gap-1.5">
+                <label class="px-2.5 py-1 rounded-full bg-[#FAF8F5] border border-[#1F2421]/15 text-[11px] font-medium text-[#1F2421] cursor-pointer hover:border-[#2D5A3D] hover:text-[#2D5A3D] transition-colors">
+                  Cambiar
+                  <input type="file" accept="image/*" class="hidden" id="compImgChangeInput" />
+                </label>
+                <button type="button" id="compImgRemoveBtn" class="px-2.5 py-1 rounded-full bg-[#FAF8F5] border border-[#1F2421]/15 text-[11px] font-medium text-[#1F2421]/70 hover:text-[#1F2421] cursor-pointer">
+                  Quitar
+                </button>
+              </div>
+            </div>
+            <div class="p-3">
+              <img src="${imgSrc}" alt="Imagen complementaria de ${comp.name}" class="w-full h-44 object-cover rounded-xl border border-[#1F2421]/10" />
+            </div>
+          </div>
+        `;
+        document.getElementById('compImgChangeInput').addEventListener('change', (e) => handleCompFileUpload(comp, e));
+        document.getElementById('compImgRemoveBtn').addEventListener('click', () => {
+          delete state.compImages[comp.id];
+          renderComponentExtraImage(comp);
+        });
+      } else {
+        container.innerHTML = `
+          <div class="p-3.5 rounded-2xl border border-dashed border-[#1F2421]/20 bg-[#F2EFE9]/60 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <span class="text-xs font-medium text-[#1F2421]/85 block">Imagen complementaria</span>
+              <span class="text-[11px] text-[#1F2421]/55">${comp.placeholder}</span>
+            </div>
+            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2D5A3D] text-[#FAF8F5] text-xs font-medium cursor-pointer hover:bg-[#234730] transition-colors">
+              <span>Cargar imagen</span>
+              <input type="file" accept="image/*" class="hidden" id="compImgUploadInput" />
+            </label>
+          </div>
+        `;
+        document.getElementById('compImgUploadInput').addEventListener('change', (e) => handleCompFileUpload(comp, e));
+      }
+    }
+
+    function handleCompFileUpload(comp, event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        state.compImages[comp.id] = e.target.result;
+        renderComponentExtraImage(comp);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateAnatomyVisualState(p4) {
+      const spread = state.reducedMotion ? 0.9 : 0.65 + Math.min(p4 * 1.15, 0.42);
+      const scaleFactor = window.innerWidth < 640 ? 0.68 : 1;
+
+      COMPONENTS.forEach((comp, idx) => {
+        const isSelected = idx === state.selectedCompIdx;
+        const tx = comp.pos.x * spread * scaleFactor;
+        const ty = comp.pos.y * spread * scaleFactor;
+
+        const line = document.getElementById(`exp-line-${idx}`);
+        if (line) {
+          line.setAttribute('x2', tx);
+          line.setAttribute('y2', ty);
+          line.setAttribute('stroke', isSelected ? '#2D5A3D' : '#1F2421');
+          line.setAttribute('stroke-opacity', isSelected ? '0.65' : '0.14');
+          line.setAttribute('stroke-width', isSelected ? '2.2' : '1.2');
+          line.classList.toggle('anim-signal', isSelected);
+        }
+
+        const node = document.getElementById(`exp-node-${idx}`);
+        if (node) {
+          node.style.transform = `translate(${tx}px, ${ty}px) scale(${isSelected ? 1.08 : 0.94})`;
+          node.className = isSelected
+            ? 'pointer-events-auto absolute px-3.5 py-2 rounded-2xl border text-xs font-semibold transition-all duration-300 cursor-pointer anim-float bg-[#2D5A3D] text-[#FAF8F5] border-[#2D5A3D] shadow-xl z-30'
+            : 'pointer-events-auto absolute px-3.5 py-2 rounded-2xl border text-xs font-semibold transition-all duration-300 cursor-pointer anim-float bg-[#FAF8F5] text-[#1F2421] border-[#1F2421]/15 opacity-70 hover:opacity-100 z-20';
+        }
+
+        const tab = document.getElementById(`comp-tab-${idx}`);
+        if (tab) {
+          tab.className = isSelected
+            ? 'px-3 py-1.5 rounded-full text-xs font-medium bg-[#2D5A3D] text-[#FAF8F5] transition-colors cursor-pointer'
+            : 'px-3 py-1.5 rounded-full text-xs font-medium bg-[#FAF8F5] text-[#1F2421]/70 border border-[#1F2421]/10 hover:border-[#2D5A3D] transition-colors cursor-pointer';
+        }
+      });
+    }
+
+    /* 6. ESCENA 07 — TARJETAS DE EVIDENCIA CON IMAGEN Y NOTAS */
+    function renderEvidenceGrid() {
+      const grid = document.getElementById('evidenceGrid');
+      grid.innerHTML = '';
+
+      EVIDENCE_SLOTS.forEach((slot) => {
+        const imgSrc = state.evidenceImages[slot.id];
+        const noteVal = state.evidenceNotes[slot.id] || '';
+        const card = document.createElement('div');
+        card.className = 'p-5 rounded-2xl border border-dashed border-[#1F2421]/20 bg-[#F2EFE9]/50 flex flex-col justify-between gap-4';
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-mono font-semibold text-[#2D5A3D]">REGISTRO</span>
+              <span class="text-[10px] font-medium uppercase tracking-wider text-[#1F2421]/55">
+                ${imgSrc ? 'Evidencia visual' : 'Pendiente de confirmar'}
+              </span>
+            </div>
+            ${imgSrc ? `<img src="${imgSrc}" alt="${slot.title}" class="w-full h-36 object-cover rounded-xl border border-[#1F2421]/10" />` : ''}
+            <div>
+              <h4 class="text-sm font-semibold text-[#1F2421]">${slot.title}</h4>
+              <p class="text-xs text-[#1F2421]/65 leading-relaxed mt-1">${slot.desc}</p>
+            </div>
+            <textarea
+              rows="2"
+              data-note-id="${slot.id}"
+              placeholder="Añadir notas u observaciones..."
+              class="evidence-note-input w-full px-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#1F2421]/12 text-xs text-[#1F2421] placeholder:text-[#1F2421]/40 focus:outline-none focus:border-[#2D5A3D] resize-none"
+            >${noteVal}</textarea>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-[#1F2421]/10">
+            <label class="text-xs font-medium text-[#2D5A3D] cursor-pointer hover:underline">
+              ${imgSrc ? 'Cambiar imagen' : 'Cargar imagen'}
+              <input type="file" accept="image/*" class="hidden evidence-file-input" data-slot-id="${slot.id}" />
+            </label>
+            ${imgSrc ? `<button type="button" class="evidence-remove-btn text-xs text-[#1F2421]/60 hover:text-[#1F2421] cursor-pointer" data-slot-id="${slot.id}">Quitar</button>` : ''}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      grid.querySelectorAll('.evidence-note-input').forEach((ta) => {
+        ta.addEventListener('input', (e) => {
+          state.evidenceNotes[e.target.dataset.noteId] = e.target.value;
+        });
+      });
+
+      grid.querySelectorAll('.evidence-file-input').forEach((input) => {
+        input.addEventListener('change', (e) => {
+          const slotId = e.target.dataset.slotId;
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            state.evidenceImages[slotId] = ev.target.result;
+            renderEvidenceGrid();
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      grid.querySelectorAll('.evidence-remove-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          delete state.evidenceImages[e.target.dataset.slotId];
+          renderEvidenceGrid();
+        });
+      });
+    }
+
+    /* 7. SIMULADOR ESCENA 05 */
+    function updateSimulator(val) {
+      const reading = Number(val);
+      const dryness = Math.min(Math.max(reading / 4095, 0), 1);
+      const wetness = 1 - dryness;
+
+      document.getElementById('simReadingValue').textContent = reading;
+      const labelEl = document.getElementById('simReadingLabel');
+      if (reading < 1400) {
+        labelEl.textContent = 'Tendencia hacia condición húmeda (cercano a 0)';
+      } else if (reading < 2800) {
+        labelEl.textContent = 'Zona intermedia de lectura observada';
+      } else {
+        labelEl.textContent = 'Tendencia hacia condición seca (cercano a 4095)';
+      }
+
+      const soilRect = document.getElementById('simSoilRect');
+      soilRect.setAttribute('fill', dryness < 0.45 ? '#3C2F26' : dryness < 0.75 ? '#5E4B3C' : '#8A735C');
+      document.getElementById('simWaterParticles').style.opacity = Math.max(wetness, 0.08);
+      document.getElementById('simWaves').style.opacity = 0.15 + wetness * 0.85;
+    }
+
+    /* 8. MOTOR DE PROGRESO DE SCROLL */
+    let lastP4 = 0;
+
+    function getSectionProgress(el) {
+      if (!el || state.reducedMotion) return 0.5;
+      const rect = el.getBoundingClientRect();
+      const wh = window.innerHeight;
+      const dist = rect.height - wh;
+      if (dist <= 0) return Math.min(Math.max((wh - rect.top) / (wh + rect.height), 0), 1);
+      return Math.min(Math.max(-rect.top / dist, 0), 1);
+    }
+
+    function updateEngineeringCards(p6) {
+      const factor =
+        state.engineeringMode === 'solar' ? 0 :
+        state.engineeringMode === 'usb' ? 1 :
+        state.reducedMotion ? 0.5 : p6;
+
+      const solarCard = document.getElementById('solarCard');
+      const usbCard = document.getElementById('usbCard');
+
+      solarCard.style.opacity = factor < 0.55 ? '1' : '0.6';
+      solarCard.style.borderColor = factor < 0.55 ? 'rgba(31,36,33,0.3)' : 'rgba(31,36,33,0.08)';
+
+      usbCard.style.opacity = factor >= 0.45 ? '1' : '0.62';
+      usbCard.style.borderColor = factor >= 0.45 ? '#2D5A3D' : 'rgba(31,36,33,0.1)';
+    }
+
+    let scrollRaf = null;
+    function onScrollFrame() {
+      scrollRaf = null;
+
+      // Progreso global
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      const gProg = docH > 0 ? Math.min(Math.max(window.scrollY / docH, 0), 1) : 0;
+      document.getElementById('globalProgressBar').style.width = `${Math.round(gProg * 100)}%`;
+
+      // Capítulo activo
+      const mid = window.innerHeight * 0.35;
+      for (const ch of CHAPTERS) {
+        const sec = document.getElementById(ch.id);
+        if (sec) {
+          const r = sec.getBoundingClientRect();
+          if (r.top <= mid && r.bottom >= mid) {
+            if (state.activeChapter !== ch.id) {
+              state.activeChapter = ch.id;
+              updateChapterNavUI(ch.id);
+            }
+            break;
+          }
+        }
+      }
+
+      // Escena 01: Zoom hacia la tierra
+      const p1 = getSectionProgress(document.getElementById('escena-01'));
+      const zoom = state.reducedMotion ? 1 : 1 + p1 * 0.7;
+      const ty = state.reducedMotion ? 0 : -p1 * 92;
+      const sensorReveal = state.reducedMotion ? 1 : Math.min(Math.max((p1 - 0.22) / 0.45, 0), 1);
+
+      document.getElementById('heroCameraLayer').style.transform = `scale(${zoom}) translateY(${ty}px)`;
+      document.getElementById('heroSoilGroup').style.opacity = 0.35 + sensorReveal * 0.65;
+      document.getElementById('heroSensorGroup').style.opacity = sensorReveal;
+      document.getElementById('heroSensorTag').style.opacity = sensorReveal > 0.25 ? '1' : '0';
+
+      // Escena 02: Transición húmedo a seco
+      const p2 = getSectionProgress(document.getElementById('escena-02'));
+      const dry = state.reducedMotion ? 0.55 : Math.min(Math.max(p2 * 1.15, 0), 1);
+      const droop = dry * 26;
+      const leafColor = dry < 0.5 ? '#2D5A3D' : '#7A7B56';
+      const leafLight = dry < 0.5 ? '#8CA992' : '#A69D76';
+      const soilColor = dry < 0.5 ? '#3C2F26' : '#8C745D';
+
+      document.getElementById('probStem').setAttribute('d', `M180 210 Q${180 + dry * 14} 150, ${180 + dry * 22} ${95 + droop * 0.6}`);
+      document.getElementById('probStem').setAttribute('stroke', leafColor);
+      document.getElementById('probLeafL').setAttribute('d', `M178 165 C140 ${150 + droop}, 110 ${128 + droop * 1.4}, 102 ${145 + droop * 1.5} C118 ${168 + droop}, 152 ${176 + droop * 0.5}, 178 165 Z`);
+      document.getElementById('probLeafL').setAttribute('fill', leafLight);
+      document.getElementById('probLeafR').setAttribute('d', `M184 150 C224 ${132 + droop}, 256 ${115 + droop * 1.5}, 264 ${134 + droop * 1.6} C246 ${158 + droop}, 212 ${164 + droop * 0.5}, 184 150 Z`);
+      document.getElementById('probLeafR').setAttribute('fill', leafColor);
+      document.getElementById('probLeafTop').setAttribute('d', `M${180 + dry * 20} ${98 + droop * 0.6} C${160 + dry * 28} ${68 + droop}, ${196 + dry * 36} ${52 + droop * 1.2}, ${205 + dry * 38} ${80 + droop * 1.1} C${198 + dry * 26} ${96 + droop * 0.8}, ${186 + dry * 20} ${102 + droop * 0.6}, ${180 + dry * 20} ${98 + droop * 0.6} Z`);
+      document.getElementById('probLeafTop').setAttribute('fill', leafColor);
+      document.getElementById('probSoilRect').setAttribute('fill', soilColor);
+      document.getElementById('probCracks').style.opacity = dry;
+      document.getElementById('probDrops').style.opacity = Math.max(1 - dry * 1.5, 0);
+
+      const bar = document.getElementById('probDryBar');
+      bar.style.width = `${Math.round(dry * 100)}%`;
+      bar.style.backgroundColor = dry < 0.5 ? '#2D5A3D' : '#9C6644';
+
+      const pill = document.getElementById('problemStatusPill');
+      if (dry < 0.45) {
+        pill.textContent = 'Condición húmeda';
+        pill.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-[#2D5A3D]/12 text-[#2D5A3D]';
+      } else if (dry < 0.75) {
+        pill.textContent = 'Pérdida gradual de humedad';
+        pill.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-[#9C6644]/15 text-[#7F4F24]';
+      } else {
+        pill.textContent = 'Condición seca';
+        pill.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-[#9C6644]/20 text-[#7F4F24]';
+      }
+
+      document.querySelectorAll('.problem-card').forEach((card) => {
+        const th = Number(card.dataset.threshold);
+        const visible = state.reducedMotion || p2 >= th;
+        card.style.opacity = visible ? '1' : '0.25';
+        card.style.transform = visible ? 'translateY(0)' : 'translateY(14px)';
+      });
+
+      // Escena 03: Prototipo completo y línea de flujo
+      const p3 = getSectionProgress(document.getElementById('escena-03'));
+      const stageCount = state.reducedMotion ? 6 : Math.floor(p3 * 6.5);
+      document.querySelectorAll('.proto-stage').forEach((g) => {
+        const st = Number(g.dataset.stage);
+        g.style.opacity = stageCount >= st ? '1' : '0.35';
+      });
+      const offset = state.reducedMotion ? 0 : 880 - 880 * Math.min(p3 * 1.15, 1);
+      document.getElementById('flowProgressLine').setAttribute('stroke-dashoffset', offset);
+
+      document.querySelectorAll('.flow-step-card').forEach((card) => {
+        const idx = Number(card.dataset.index);
+        const active = state.reducedMotion || p3 >= (idx / FLOW_NODES.length) * 0.85;
+        const dot = card.querySelector('.flow-dot');
+        card.className = active
+          ? 'flow-step-card p-4 rounded-2xl border bg-[#FAF8F5] border-[#2D5A3D]/40 shadow-sm scale-[1.02] transition-all duration-300'
+          : 'flow-step-card p-4 rounded-2xl border bg-[#FAF8F5]/40 border-[#1F2421]/10 opacity-45 transition-all duration-300';
+        dot.className = active ? 'flow-dot w-2 h-2 rounded-full bg-[#2D5A3D]' : 'flow-dot w-2 h-2 rounded-full bg-[#1F2421]/20';
+      });
+
+      // Escena 04: Anatomía
+      const p4 = getSectionProgress(document.getElementById('escena-04'));
+      lastP4 = p4;
+      if (!state.reducedMotion && !state.manualCompOverride) {
+        const autoIdx = Math.min(Math.floor(p4 * COMPONENTS.length), COMPONENTS.length - 1);
+        if (autoIdx !== state.selectedCompIdx) {
+          selectComponent(autoIdx);
+        }
+      }
+      updateAnatomyVisualState(p4);
+
+      // Escena 06: Solar vs USB
+      const p6 = getSectionProgress(document.getElementById('escena-06'));
+      updateEngineeringCards(p6);
+    }
+
+    function scheduleScrollUpdate() {
+      if (!scrollRaf) scrollRaf = requestAnimationFrame(onScrollFrame);
+    }
+
+    /* 9. EVENTOS DE INTERFAZ Y CONTROLES */
+    function bindEvents() {
+      window.addEventListener('scroll', scheduleScrollUpdate, { passive: true });
+      window.addEventListener('resize', scheduleScrollUpdate, { passive: true });
+
+      // Volver al inicio
+      const goTop = () => window.scrollTo({ top: 0, behavior: state.reducedMotion ? 'auto' : 'smooth' });
+      document.getElementById('brandTopBtn').addEventListener('click', goTop);
+      document.getElementById('backToTopBtn').addEventListener('click', goTop);
+
+      // Menú móvil
+      document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+        document.getElementById('mobileChapterNav').classList.toggle('hidden');
+      });
+
+      // Reducir animaciones
+      const toggleMotionBtn = document.getElementById('toggleMotionBtn');
+      toggleMotionBtn.addEventListener('click', () => {
+        state.reducedMotion = !state.reducedMotion;
+        document.body.classList.toggle('reduced-motion', state.reducedMotion);
+        toggleMotionBtn.setAttribute('aria-pressed', String(state.reducedMotion));
+        document.getElementById('motionIconOn').classList.toggle('hidden', state.reducedMotion);
+        document.getElementById('motionIconOff').classList.toggle('hidden', !state.reducedMotion);
+        document.getElementById('motionBtnLabel').textContent = state.reducedMotion
+          ? 'Animaciones reducidas'
+          : 'Reducir animaciones';
+        document.getElementById('scrollHintText').classList.toggle('hidden', state.reducedMotion);
+
+        if (state.reducedMotion) {
+          toggleMotionBtn.classList.add('bg-[#2D5A3D]', 'text-[#FAF8F5]', 'border-[#2D5A3D]');
+          toggleMotionBtn.classList.remove('text-[#1F2421]/80');
+        } else {
+          toggleMotionBtn.classList.remove('bg-[#2D5A3D]', 'text-[#FAF8F5]', 'border-[#2D5A3D]');
+          toggleMotionBtn.classList.add('text-[#1F2421]/80');
+        }
+        scheduleScrollUpdate();
+      });
+
+      // Simulador Escena 05
+      document.getElementById('simSlider').addEventListener('input', (e) => updateSimulator(e.target.value));
+
+      // Acordeón parámetros pendientes
+      const accBtn = document.getElementById('pendingAccordionBtn');
+      const accBody = document.getElementById('pendingAccordionBody');
+      const accChev = document.getElementById('pendingAccordionChevron');
+      accBtn.addEventListener('click', () => {
+        const expanded = accBtn.getAttribute('aria-expanded') === 'true';
+        accBtn.setAttribute('aria-expanded', String(!expanded));
+        accBody.classList.toggle('hidden', expanded);
+        accChev.classList.toggle('rotate-180', !expanded);
+      });
+
+      // Selector Escena 06
+      document.querySelectorAll('.eng-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.engineeringMode = btn.dataset.engMode;
+          document.querySelectorAll('.eng-mode-btn').forEach((b) => {
+            const active = b.dataset.engMode === state.engineeringMode;
+            b.className = active
+              ? 'eng-mode-btn px-3.5 py-1.5 rounded-full text-xs font-medium bg-[#2D5A3D] text-[#FAF8F5] cursor-pointer transition-colors'
+              : 'eng-mode-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-[#1F2421]/70 cursor-pointer transition-colors';
+          });
+          scheduleScrollUpdate();
+        });
+      });
+
+      // Modal Datos Académicos
+      const modal = document.getElementById('metaModal');
+      const closeModal = () => modal.classList.add('hidden');
+      document.getElementById('openMetaModalBtn').addEventListener('click', () => modal.classList.remove('hidden'));
+      document.getElementById('closeMetaModalBtn').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.getElementById('saveMetaModalBtn').addEventListener('click', () => {
+        const updates = {
+          projectName: document.getElementById('inputProjectName').value.trim() || '[Nombre definitivo del proyecto]',
+          authors: document.getElementById('inputAuthors').value.trim() || '[Autores del proyecto]',
+          course: document.getElementById('inputCourse').value.trim() || '[Asignatura]',
+          institution: document.getElementById('inputInstitution').value.trim() || '[Institución educativa]'
+        };
+        Object.keys(updates).forEach((key) => {
+          document.querySelectorAll(`[data-meta="${key}"]`).forEach((el) => {
+            el.textContent = updates[key];
+          });
+        });
+        closeModal();
+      });
+    }
+
+    /* 10. INICIALIZACIÓN */
+    document.addEventListener('DOMContentLoaded', () => {
+      initNavigation();
+      initFlowCards();
+      initAnatomy();
+      renderEvidenceGrid();
+      updateSimulator(3200);
+      bindEvents();
+      updateChapterNavUI('escena-01');
+      scheduleScrollUpdate();
+    });
+  </script>
+</body>
+</html>
